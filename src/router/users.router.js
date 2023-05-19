@@ -1,13 +1,10 @@
 const router = require('express').Router();
-const User = require('../model/users.model')
+const userController = require('../controllers/users.controller')
 
-router.get('/users', (req, res) => {
-    res.send(" I am a Router")
-})
 
-router.get('/users/:user_id', (req, res) => {
-    res.send(" I am a Router")
-})
+router.get('/users', userController.findAll)
+
+router.get('/users/:user_id',  userController.findOne)
 
 router.post('/users', (req, res) => {
     res.send(" I am a Router")
