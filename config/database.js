@@ -9,7 +9,10 @@ module.exports = {
     port: process.env.DB_PORT || 3306,
 
     seederStorage: 'sequelize',
-    seederStorageTableName: "SequelizsSeeds",
+    seederStorageTableName: "SequelizeSeeds",
+
+    migrationStore: 'sequelize',
+    migrationStorageTableName: "migrations",
     
     definie:{
       underscored: true

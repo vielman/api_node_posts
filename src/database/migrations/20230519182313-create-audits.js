@@ -12,6 +12,22 @@ module.exports = {
       action: {
         type: Sequelize.STRING
       },
+      post_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        reference: {
+          model: "Posts",
+          key: "id"
+        }
+      },
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        reference: {
+          model: "Users",
+          key: "id"
+        }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

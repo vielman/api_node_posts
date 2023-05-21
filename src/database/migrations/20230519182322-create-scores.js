@@ -12,6 +12,14 @@ module.exports = {
       score: {
         type: Sequelize.INTEGER
       },
+      post_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        reference: {
+          model: "Posts",
+          key: "id"
+        }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
