@@ -1,16 +1,18 @@
 const { Audits } = require('../models/index');
+const {schemaVadidatId} = require('../middleware/vaidation');
 
 const findAll = async (req, res) => {
     try {
         let audits = await Audits.findAll({
-            include:{
+            include:[{
                 association: 'Posts',
-                attributes:['title', 'content']
-            },
-            include:{
+                attributes:['title']
+                },
+                {
                 association: 'Users',
                 attributes:['name', 'email']
-            }
+                }
+            ]
         });
         res.status(200).json({
             ok: true,
@@ -19,25 +21,29 @@ const findAll = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const findOne = async (req, res) => {
     try {
         const id = req.params.audit_id;
+        const { error } = schemaVadidatId.validate({id});
+        if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
+
         let audit = await Audits.findOne({
             where: {
                 id:id
             }, 
-            include:{
+            include:[{
                 association: 'Posts',
-                attributes:['title', 'content']
-            },
-            include:{
+                attributes:['title']
+                },
+                {
                 association: 'Users',
                 attributes:['name', 'email']
-            }
+                }
+            ]
         });
         res.status(200).json({
             ok: true,
@@ -46,11 +52,11 @@ const findOne = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
-const create = async (action, post_id, user_id) => {
+async function createAudit(action, post_id, user_id) {
     try {
         await Audits.sync();
         let createAudit = await Audits.create({
@@ -58,14 +64,10 @@ const create = async (action, post_id, user_id) => {
             post_id,
             user_id,
         });
-        return {
-            ok: true,
-            statu:201,
-            body: "Created Audits"
-        };
+        return true;
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      return false;
     }
 };
 
@@ -73,5 +75,5 @@ const create = async (action, post_id, user_id) => {
 module.exports = {
    findAll,
    findOne,
-   create
+   createAudit
 }

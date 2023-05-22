@@ -2,7 +2,6 @@ const router = require('express').Router();
 const userController = require('../controllers/users.controller');
 const verifyToken  = require('../middleware/vaidateJWT');
 
-
 router.get('/users', verifyToken, userController.findAll);
 
 router.get('/users/:user_id', verifyToken, userController.findOne);

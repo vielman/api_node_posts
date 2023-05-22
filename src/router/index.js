@@ -9,5 +9,4 @@ app.use("/", require("./posts.router"));
 app.use("/", require("./scores.router"));
 app.use("/", require("./audits.router"));
 
-
 module.exports = app;

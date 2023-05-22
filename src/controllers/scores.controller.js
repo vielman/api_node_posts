@@ -1,4 +1,5 @@
 const { Scores } = require('../models/index');
+const { schemaScoreFields, schemaVadidatId} = require('../middleware/vaidation');
 
 const findAll = async (req, res) => {
     try {
@@ -15,13 +16,16 @@ const findAll = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const findOne = async (req, res) => {
     try {
         const id = req.params.score_id;
+        const { error } = schemaVadidatId.validate({id});
+        if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
+
         let score = await Scores.findOne({
             where: {
                 id:id
@@ -39,13 +43,16 @@ const findOne = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const create = async (req, res) => {
     try {
         const dataScores = req.body;
+        var { error } = schemaScoreFields.validate(req.body);
+        if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
+
         await Scores.sync();
         let createScore = await Scores.create({
             score: dataScores.score,
@@ -58,7 +65,7 @@ const create = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 

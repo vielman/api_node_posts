@@ -7,6 +7,10 @@ const { schemaLogin, schemaUserFields, schemaVadidatId } = require('../middlewar
 
 const findAll = async (req, res) => {
     try {
+        if (req.user.rol_name !== "Admin") {
+            return res.status(400).json({ ok: false, statu:400, body: "Access denied must be administrator"});
+        }
+
         let users = await Users.findAll({
             include:{
                 association: 'Rol',
@@ -20,12 +24,16 @@ const findAll = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const findOne = async (req, res) => {
     try {
+        if (req.user.rol_name !== "Admin") {
+            return res.status(400).json({ ok: false, statu:400, body: "Access denied must be administrator"});
+        }
+
         const id = req.params.user_id;
         const { error } = schemaVadidatId.validate({id});
         if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
@@ -46,12 +54,16 @@ const findOne = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const create = async (req, res) => {
     try {
+        if (req.user.rol_name !== "Admin") {
+            return res.status(400).json({ ok: false, statu:400, body: "Access denied must be administrator"});
+        }
+
         const { error } = schemaUserFields.validate(req.body);
         if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
 
@@ -88,12 +100,16 @@ const create = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const update = async (req, res) => {
     try {
+        if (req.user.rol_name !== "Admin") {
+            return res.status(400).json({ ok: false, statu:400, body: "Access denied must be administrator"});
+        }
+
         const id = req.params.user_id;
         var { error } = schemaVadidatId.validate({id});
         if (!id || error) {
@@ -123,13 +139,20 @@ const update = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const deleteUsers = async (req, res) => {
     try {
+        if (req.user.rol_name !== "Admin") {
+            return res.status(400).json({ ok: false, statu:400, body: "Access denied must be administrator"});
+        }
+
         const id = req.params.user_id;
+        const { error } = schemaVadidatId.validate({id});
+        if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
+
         let deleteUser = await Users.destroy({
             where: {
                 id:id
@@ -142,45 +165,50 @@ const deleteUsers = async (req, res) => {
         });
     } catch (err) {
       console.log(err)
-      res.status(500).json({ ok: false, statu:500,msg: "Error interno en el servidor" });
+      res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
     }
 };
 
 const signIn = async (req, res) =>{
-    const { error } = schemaLogin.validate(req.body);
-    if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
+    try {
+        const { error } = schemaLogin.validate(req.body);
+        if (error) return res.status(400).json({ ok: false, statu:400, error: error.details[0].message });
 
-    const dataUsers = req.body;
-    const user = await Users.findOne({ 
-        where:{ email: dataUsers.email 
-        }, 
-        include:{
-            association: 'Rol',
-            attributes:['name', 'options']
-        }
-    });
+        const dataUsers = req.body;
+        const user = await Users.findOne({ 
+            where:{ email: dataUsers.email 
+            }, 
+            include:{
+                association: 'Rol',
+                attributes:['name', 'options']
+            }
+        });
 
-    if (!user) return res.status(400).json({ ok: false, statu:400, error: 'User not found' });
-    
-    const validPassword = await bcrypt.compare(dataUsers.password, user.password);
-    if (!validPassword) return res.status(400).json({ ok: false, statu:400,error: 'Invalid password' });
+        if (!user) return res.status(400).json({ ok: false, statu:400, error: 'User not found' });
+        
+        const validPassword = await bcrypt.compare(dataUsers.password, user.password);
+        if (!validPassword) return res.status(400).json({ ok: false, statu:400,error: 'Invalid password' });
 
-    const token = jwt.sign({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        rol_id: user.rol_id,
-        rol_name: user.Rol.name,
-        rol_options: user.Rol.options
-    }, process.env.TOKEN_SECRET)
+        const token = jwt.sign({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            rol_id: user.rol_id,
+            rol_name: user.Rol.name,
+            rol_options: user.Rol.options
+        }, process.env.TOKEN_SECRET)
 
-    res.header('auth-token', token).json({
-        ok: true,
-        statu:200,
-        error: null,
-        body: 'Success welcome',
-        token: {token}
-    })
+        res.header('auth-token', token).json({
+            ok: true,
+            statu:200,
+            error: null,
+            body: 'Success welcome',
+            token: {token}
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ ok: false, statu:500,msg: "Internal error on the server" });
+    }
 }
 
 module.exports = {
